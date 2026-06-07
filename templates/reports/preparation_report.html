@@ -1,3 +1,11 @@
+{% extends "layout/base.html" %}
+{% block title %}Preparation Report{% endblock %}
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Home</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('meetings.list_meetings') }}">Meetings</a></li>
+<li class="breadcrumb-item active">Preparation Report</li>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .markdown-content h1, .markdown-content h2, .markdown-content h3 {
@@ -105,15 +113,59 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    marked.use({
-        mangle: false,
-        headerIds: false
-    });
+    const hasMarked = typeof marked !== 'undefined';
     
     document.querySelectorAll('.markdown-content').forEach(function(el) {
         const rawMarkdown = el.textContent || el.innerText;
-        el.innerHTML = marked.parse(rawMarkdown.trim());
+        if (hasMarked) {
+            try {
+                marked.use({
+                    mangle: false,
+                    headerIds: false
+                });
+                el.innerHTML = marked.parse(rawMarkdown.trim());
+            } catch (e) {
+                console.error("Marked.js parsing failed, using fallback parser:", e);
+                el.innerHTML = parseSimpleMarkdown(rawMarkdown.trim());
+            }
+        } else {
+            console.warn("Marked.js not available, using fallback parser");
+            el.innerHTML = parseSimpleMarkdown(rawMarkdown.trim());
+        }
     });
 });
+
+function parseSimpleMarkdown(text) {
+    // Escape HTML tags to prevent XSS
+    let html = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    
+    // Convert headers: ## or ###
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+    
+    // Bold
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Convert horizontal rules
+    html = html.replace(/^---$/gim, '<hr>');
+    
+    // Bullet lists
+    html = html.replace(/^\s*-\s+(.*)$/gim, '<li>$1</li>');
+    // Numbered lists
+    html = html.replace(/^\s*\d+\.\s+(.*)$/gim, '<li>$1</li>');
+    
+    // Wrap adjacent <li> in <ul> (simple grouping)
+    html = html.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
+    html = html.replace(/<\/ul>\s*<ul>/gim, '');
+    
+    // Newlines to <br> for regular text paragraphs
+    html = html.replace(/\n/g, '<br>');
+    
+    return html;
+}
 </script>
 {% endblock %}

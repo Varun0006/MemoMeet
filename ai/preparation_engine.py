@@ -45,23 +45,29 @@ class PreparationEngine:
             return self._generate_fallback(participant, meeting_count, memories, commitments, sections=sections)
 
     def _generate_fallback(self, participant, meeting_count, memories, commitments, sections=None):
-        lines = [f"--- Preparation Report for {participant.name} ---"]
-        lines.append(f"\nMeetings recorded: {meeting_count}")
+        lines = [f"## Preparation Report for {participant.name}"]
+        lines.append(f"**Meetings recorded:** {meeting_count}\n")
         if not sections or "relationship" in sections:
-            lines.append("\nRelationship Summary:")
-            lines.append("  - Collaboration history is active.")
+            lines.append("### Relationship Summary")
+            lines.append("- Collaboration history is active.\n")
         if not sections or "memories" in sections:
+            lines.append("### Key Memories to Review")
             if memories:
-                lines.append("\nKey Memories:")
                 for m in memories:
-                    lines.append(f"  - [{m.memory_type}] {m.content[:100]}")
+                    lines.append(f"- [{m.memory_type}] {m.content[:100]}")
+            else:
+                lines.append("- No memories recorded.")
+            lines.append("")
         if not sections or "commitments" in sections:
+            lines.append("### Open Commitments")
             if commitments:
-                lines.append("\nOpen Commitments:")
                 for c in commitments:
-                    lines.append(f"  - {c.task}")
+                    lines.append(f"- {c.task}")
+            else:
+                lines.append("- No open commitments.")
+            lines.append("")
         if not sections or "questions" in sections:
-            lines.append("\nSuggested Questions:")
-            lines.append("  1. How have things been since our last meeting?")
-            lines.append("  2. Any updates on the topics we discussed?")
+            lines.append("### Suggested Questions to Ask")
+            lines.append("1. How have things been since our last meeting?")
+            lines.append("2. Any updates on the topics we discussed?\n")
         return "\n".join(lines)

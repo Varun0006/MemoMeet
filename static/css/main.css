@@ -232,6 +232,24 @@ main {
     }
     .navbar {
         position: static;
+        height: auto !important;
+        min-height: var(--navbar-height);
+    }
+    .navbar-collapse {
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+    }
+    .navbar-nav {
+        align-items: center !important;
+        gap: 0.75rem;
+    }
+    .navbar-nav .nav-item {
+        width: 100%;
+        text-align: center;
+    }
+    .navbar-nav #themeToggle {
+        margin-right: 0 !important;
+        margin-bottom: 0.25rem;
     }
 }
 
