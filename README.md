@@ -1,46 +1,27 @@
 # MemoMeet
 
-MemoMeet is an AI-powered meeting intelligence app built with Flask.
+MemoMeet is an AI-powered Meeting Preparation Agent that turns meeting history into actionable memory. It helps organizers, community leaders, managers, and teams preserve context across meetings so every discussion starts with the right background instead of starting from zero.
 
-## Phase 1 Scope
+Repository: https://github.com/manish-12ys/MemoMeet
 
-Phase 1 delivers the project foundation and authentication layer:
+## Documentation
 
-- Flask app factory setup
-- SQLite database via Flask-SQLAlchemy
-- User registration, login, logout
-- Password hashing and session management (Flask-Login)
-- Protected dashboard route
-- Base responsive layout with navbar, sidebar, footer, and theme toggle
+- [Problem Statement Selected](docs/problem-statement.md)
+- [Solution Overview](docs/solution-overview.md)
+- [Features Implemented](docs/features-implemented.md)
+- [Technology Stack Used](docs/technology-stack.md)
+- [Setup Instructions](docs/setup-instructions.md)
 
-## Quick Start
+## Quick Summary
 
-1. Create and sync environment:
+Most meeting tools summarize what happened in one meeting. MemoMeet goes further by maintaining persistent memory across multiple meetings.
 
-```bash
-uv sync
-```
+After a meeting, MemoMeet analyzes notes or transcripts and extracts decisions, action items, commitments, participant preferences, and important discussion topics. Before the next meeting, it retrieves the most relevant memories and generates a preparation brief with useful context, follow-up questions, and pending commitments.
 
-2. Configure environment variables:
+## Core Idea
 
-```bash
-cp .env.example .env
-```
+MemoMeet helps every meeting begin with context instead of starting from zero.
 
-3. Run the app:
+## Project Link
 
-```bash
-uv run main.py
-```
-
-4. Open:
-
-```text
-http://127.0.0.1:5000
-```
-
-## Run Core Tests
-
-```bash
-uv run pytest -q tests/test_auth.py tests/test_participants.py tests/test_meetings.py
-```
+GitHub: https://github.com/manish-12ys/MemoMeet
