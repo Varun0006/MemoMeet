@@ -1,37 +1,119 @@
-{% extends "layout/base.html" %}
-{% block title %}Preparation Report{% endblock %}
-{% block breadcrumbs %}
-<li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Home</a></li>
-<li class="breadcrumb-item"><a href="{{ url_for('meetings.list_meetings') }}">Meetings</a></li>
-<li class="breadcrumb-item active">Preparation Report</li>
+{% block extra_css %}
+<style>
+    .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-family: var(--font-heading);
+        font-weight: 600;
+        color: var(--primary);
+    }
+    .markdown-content h2 {
+        font-size: 1.3rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.35rem;
+        margin-top: 1.75rem;
+    }
+    .markdown-content h3 {
+        font-size: 1.1rem;
+    }
+    .markdown-content p {
+        margin-bottom: 1rem;
+        line-height: 1.6;
+        color: var(--text-primary);
+    }
+    .markdown-content ul, .markdown-content ol {
+        margin-bottom: 1.25rem;
+        padding-left: 1.5rem;
+    }
+    .markdown-content li {
+        margin-bottom: 0.5rem;
+    }
+    .markdown-content strong {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    .prep-card {
+        border-left: 4px solid var(--primary) !important;
+    }
+    /* Style printed reports nicely */
+    @media print {
+        body {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+        }
+        .card {
+            border: 1px solid #ccc !important;
+            box-shadow: none !important;
+            page-break-inside: avoid;
+            margin-bottom: 20px !important;
+        }
+        .sidebar, .navbar, .btn, .breadcrumb, .breadcrumb-item, .border-bottom {
+            display: none !important;
+        }
+        main {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            color: #000000 !important;
+        }
+    }
+</style>
 {% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Preparation Report</h1>
     <button class="btn btn-outline-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
 </div>
 
-<div class="card mb-3">
-    <div class="card-header">
-        <h5>{{ meeting.title }}</h5>
-        <small class="text-muted">{{ meeting.date.strftime('%B %d, %Y') }}</small>
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-transparent py-3">
+        <h5 class="mb-1">{{ meeting.title }}</h5>
+        <small class="text-muted"><i class="bi bi-calendar3 me-2"></i>{{ meeting.date.strftime('%B %d, %Y') }}</small>
     </div>
     <div class="card-body">
-        <p>Use this report to prepare for your meeting. Review participant history, past memories, and open commitments.</p>
-        <a href="{{ url_for('meetings.meeting_details', id=meeting.id) }}" class="btn btn-sm btn-outline-secondary">Back to Meeting</a>
+        <p class="mb-3">Use this report to prepare for your meeting. Review participant history, past memories, and open commitments.</p>
+        <a href="{{ url_for('meetings.meeting_details', id=meeting.id) }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Meeting
+        </a>
     </div>
 </div>
 
 {% if participant_reports %}
     {% for pr in participant_reports %}
-        <div class="card mb-3">
-            <div class="card-header"><strong>{{ pr.participant.name }}</strong> <small class="text-muted">Preparation</small></div>
-            <div class="card-body">
-                <pre style="white-space:pre-wrap;">{{ pr.report }}</pre>
+        <div class="card mb-4 shadow-sm prep-card">
+            <div class="card-header bg-transparent py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 font-heading"><i class="bi bi-person-fill me-2 text-primary"></i><strong>{{ pr.participant.name }}</strong></h5>
+                <span class="badge bg-primary px-3 py-2">Preparation Report</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="markdown-content">{{ pr.report }}</div>
             </div>
         </div>
     {% endfor %}
 {% else %}
-    <p class="text-muted">No participants found for this meeting.</p>
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-people fs-1 d-block mb-3"></i>
+        <p class="mb-0">No participants found for this meeting.</p>
+    </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    marked.use({
+        mangle: false,
+        headerIds: false
+    });
+    
+    document.querySelectorAll('.markdown-content').forEach(function(el) {
+        const rawMarkdown = el.textContent || el.innerText;
+        el.innerHTML = marked.parse(rawMarkdown.trim());
+    });
+});
+</script>
 {% endblock %}

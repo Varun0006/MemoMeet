@@ -14,7 +14,6 @@ reports_bp = Blueprint("reports", __name__)
 def preparation_report(meeting_id):
     meeting = Meeting.query.filter_by(id=meeting_id, user_id=current_user.id).first_or_404()
     engine = PreparationEngine()
-    # determine selected participants and options
     if request.method == "POST":
         selected = request.form.getlist("participants")
         sections = request.form.getlist("sections")
@@ -27,9 +26,9 @@ def preparation_report(meeting_id):
             if selected and str(mp.participant.id) not in selected:
                 continue
             try:
-                report_text = engine.generate_report(mp.participant, current_user.id)
+                report_text = engine.generate_report(mp.participant, current_user.id, sections=sections, limit=limit)
             except Exception:
-                report_text = engine._generate_fallback(mp.participant, None, [], [])
+                report_text = engine._generate_fallback(mp.participant, 0, [], [], sections=sections)
             participant_reports.append({"participant": mp.participant, "report": report_text})
 
         if output == "pdf" and participant_reports:
@@ -52,7 +51,7 @@ def preparation_report(meeting_id):
         try:
             report_text = engine.generate_report(mp.participant, current_user.id)
         except Exception:
-            report_text = engine._generate_fallback(mp.participant, None, [], [])
+            report_text = engine._generate_fallback(mp.participant, 0, [], [])
         participant_reports.append({"participant": mp.participant, "report": report_text})
     return render_template("reports/preparation_report.html", meeting=meeting, participant_reports=participant_reports)
 

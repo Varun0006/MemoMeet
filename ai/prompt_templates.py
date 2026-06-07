@@ -33,19 +33,14 @@ PREPARATION_PROMPT = """
 Generate a meeting preparation report based on the following context:
 
 Participant: {participant_name}
-Relationship Health Score: {health_score}
 Previous Meetings: {meeting_count} meetings
 Key Memories: {memories}
 Open Commitments: {commitments}
 
-Generate:
-1. Relationship Summary
-2. Key Memories to Review
-3. Open Commitments
-4. Important Concerns
-5. Suggested Questions to Ask
-6. Suggested Discussion Topics
-7. Risks to Address
+Generate only the following requested sections:
+{sections_text}
+
+Note: Do not include or discuss numerical relationship health scores, status metrics (e.g. active/at-risk/strong), or ratings in the report.
 """
 
 CHAT_PROMPT = """

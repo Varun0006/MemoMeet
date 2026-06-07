@@ -9,38 +9,59 @@ class PreparationEngine:
     def __init__(self):
         self.gemini = GroqService()
 
-    def generate_report(self, participant, user_id):
+    def generate_report(self, participant, user_id, sections=None, limit=10):
         meeting_count = MeetingParticipant.query.filter_by(participant_id=participant.id).count()
-        memories = Memory.query.filter_by(participant_id=participant.id, user_id=user_id).order_by(Memory.created_at.desc()).limit(10).all()
+        memories = Memory.query.filter_by(participant_id=participant.id, user_id=user_id).order_by(Memory.created_at.desc()).limit(limit).all()
         commitments = ActionItem.query.filter_by(participant_id=participant.id, user_id=user_id, status="Pending").all()
 
         memories_text = "\n".join(f"- [{m.memory_type}] {m.content}" for m in memories) if memories else "No memories recorded."
         commitments_text = "\n".join(f"- {c.task} (deadline: {c.deadline})" for c in commitments) if commitments else "No open commitments."
 
         if self.gemini.is_available():
+            section_instructions = []
+            if not sections or "relationship" in sections:
+                section_instructions.append("1. Relationship Summary (briefly overview past interactions and history; do not discuss numerical relationship status, health scores, or ratings since they are deprecated)")
+            if not sections or "memories" in sections:
+                section_instructions.append("2. Key Memories to Review")
+            if not sections or "commitments" in sections:
+                section_instructions.append("3. Open Commitments")
+                section_instructions.append("4. Important Concerns")
+                section_instructions.append("5. Risks to Address")
+            if not sections or "questions" in sections:
+                section_instructions.append("6. Suggested Questions to Ask")
+                section_instructions.append("7. Suggested Discussion Topics")
+
+            sections_text = "\n".join(section_instructions)
+
             prompt = PREPARATION_PROMPT.format(
                 participant_name=participant.name,
-                health_score="N/A",
                 meeting_count=meeting_count,
                 memories=memories_text,
                 commitments=commitments_text,
+                sections_text=sections_text,
             )
             return self.gemini.generate(prompt)
         else:
-            return self._generate_fallback(participant, meeting_count, memories, commitments)
+            return self._generate_fallback(participant, meeting_count, memories, commitments, sections=sections)
 
-    def _generate_fallback(self, participant, meeting_count, memories, commitments):
+    def _generate_fallback(self, participant, meeting_count, memories, commitments, sections=None):
         lines = [f"--- Preparation Report for {participant.name} ---"]
         lines.append(f"\nMeetings recorded: {meeting_count}")
-        if memories:
-            lines.append("\nKey Memories:")
-            for m in memories[:5]:
-                lines.append(f"  - {m.content[:100]}")
-        if commitments:
-            lines.append("\nOpen Commitments:")
-            for c in commitments:
-                lines.append(f"  - {c.task}")
-        lines.append("\nSuggested Questions:")
-        lines.append("  1. How have things been since our last meeting?")
-        lines.append("  2. Any updates on the topics we discussed?")
+        if not sections or "relationship" in sections:
+            lines.append("\nRelationship Summary:")
+            lines.append("  - Collaboration history is active.")
+        if not sections or "memories" in sections:
+            if memories:
+                lines.append("\nKey Memories:")
+                for m in memories:
+                    lines.append(f"  - [{m.memory_type}] {m.content[:100]}")
+        if not sections or "commitments" in sections:
+            if commitments:
+                lines.append("\nOpen Commitments:")
+                for c in commitments:
+                    lines.append(f"  - {c.task}")
+        if not sections or "questions" in sections:
+            lines.append("\nSuggested Questions:")
+            lines.append("  1. How have things been since our last meeting?")
+            lines.append("  2. Any updates on the topics we discussed?")
         return "\n".join(lines)
